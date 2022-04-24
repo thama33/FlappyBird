@@ -339,6 +339,10 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
         
         //スクロールを再開させる
         scrollNode.speed = 1
+        
+        //鳥の回転を戻す
+        let rollReset = SKAction.rotate(toAngle: 0, duration: 0)
+        bird.run(rollReset)
     }
     
     func setupScoreLabel(){
