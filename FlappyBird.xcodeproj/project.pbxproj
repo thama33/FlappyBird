@@ -14,6 +14,7 @@
 		A4398FF228137AB30082F503 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A4398FF128137AB30082F503 /* Assets.xcassets */; };
 		A4398FF528137AB30082F503 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A4398FF328137AB30082F503 /* LaunchScreen.storyboard */; };
 		A4398FFD28137FF40082F503 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4398FFC28137FF40082F503 /* GameScene.swift */; };
+		A4861F83281968BC005DF278 /* coin001.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A4861F82281968BC005DF278 /* coin001.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		A4398FF428137AB30082F503 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A4398FF628137AB30082F503 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A4398FFC28137FF40082F503 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
+		A4861F82281968BC005DF278 /* coin001.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = coin001.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 				A4398FF128137AB30082F503 /* Assets.xcassets */,
 				A4398FF328137AB30082F503 /* LaunchScreen.storyboard */,
 				A4398FF628137AB30082F503 /* Info.plist */,
+				A4861F82281968BC005DF278 /* coin001.mp3 */,
 			);
 			path = FlappyBird;
 			sourceTree = "<group>";
@@ -131,6 +134,7 @@
 				A4398FF528137AB30082F503 /* LaunchScreen.storyboard in Resources */,
 				A4398FF228137AB30082F503 /* Assets.xcassets in Resources */,
 				A4398FF028137AB20082F503 /* Main.storyboard in Resources */,
+				A4861F83281968BC005DF278 /* coin001.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

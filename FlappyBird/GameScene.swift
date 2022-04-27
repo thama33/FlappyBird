@@ -12,16 +12,21 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
     var scrollNode:SKNode!
     var wallNode:SKNode!
     var bird:SKSpriteNode!
+    var coinNode:SKNode!
+//    var coin:SKSpriteNode!
     
     //衝突判定カテゴリー
     let birdCategory: UInt32 = 1 << 0
     let groundCategory: UInt32 = 1 << 1
     let wallCategory: UInt32 = 1 << 2
     let scoreCategory: UInt32 = 1 << 3
+    let coinCategory: UInt32 = 1 << 4
     
     //スコア用
     var score = 0
+    var itemScore = 0
     var scoreLabelNode:SKLabelNode!
+    var itemScoreLabelNode:SKLabelNode!
     var bestScoreLabeLNode:SKLabelNode!
     let userDefaults:UserDefaults = UserDefaults.standard
     
@@ -43,11 +48,16 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
         wallNode = SKNode()
         scrollNode.addChild(wallNode)
         
+        // コイン用ノード
+        coinNode = SKNode()
+        scrollNode.addChild(coinNode)
+        
         //各種スプライトを生成する処理をメソッドに分割
         setupGround()
         setupCloud()
         setupWall()
         setupBird()
+        setupCoin()
         
         //スコア表示ラベルの設定
         setupScoreLabel()
@@ -257,7 +267,7 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
         //カテゴリー設定
         bird.physicsBody?.categoryBitMask = birdCategory
         bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
-        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory
+        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory | coinCategory
         
         //衝突した時に回転させない
         bird.physicsBody?.allowsRotation = false
@@ -272,6 +282,7 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
     //画面をタップした時に呼ばれる
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
        
+
         if scrollNode.speed > 0{
         //鳥の速度をゼロにする
         bird.physicsBody?.velocity = CGVector.zero
@@ -286,16 +297,20 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
     
     //SKPhysicsContactDelegateのメソッド。衝突した時に呼ばれる
     func didBegin(_ contact: SKPhysicsContact) {
+        
+        let coinSound = SKAction.playSoundFileNamed("coin001", waitForCompletion: true)
         //ゲームオーバーの時は何もしない
         if scrollNode.speed <= 0 {
             return
         }
         
-        if(contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory{
+        //if contact.bodyA.categoryBitMask == scoreCategory || contact.bodyB.categoryBitMask  == scoreCategory{
+      if(contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory{
             // スコアカウント用の透明な壁と衝突した
             print("ScoreUp")
             score += 1
             scoreLabelNode.text = "Score:\(score)"
+        
             
             //ベストスコア更新か確認する
             var bestScore = userDefaults.integer(forKey: "BEST")
@@ -305,6 +320,16 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
                 userDefaults.set(bestScore, forKey: "BEST")
                 userDefaults.synchronize()
             }
+        }else if(contact.bodyA.categoryBitMask & coinCategory) == coinCategory || (contact.bodyB.categoryBitMask & coinCategory) == coinCategory{
+            print("ScoreUp")
+            itemScore += 1
+            itemScoreLabelNode.text = "Item Score:\(itemScore)"
+            run(coinSound)
+            
+            contact.bodyA.node?.removeFromParent()
+           // contact.bodyB.node?.removeFromParent()
+        
+            
         }else{
             // 壁か地面と衝突した
             print("GameOver")
@@ -324,6 +349,8 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
         //スコアを０にする
         score = 0
         scoreLabelNode.text = "Score:\(score)"
+        itemScore = 0
+        itemScoreLabelNode.text = "Item Score:\(itemScore)"
         
         //鳥を初期位置に戻し、壁と地面の両方に反発する様に戻す
         bird.position = CGPoint(x: self.frame.size.width * 0.2, y: self.frame.height * 0.7)
@@ -333,6 +360,9 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
         
         //全ての壁を取り除く
         wallNode.removeAllChildren()
+        
+        //全てのコインを取り除く
+        coinNode.removeAllChildren()
         
         //鳥の羽ばたきを戻す
         bird.speed = 1
@@ -360,10 +390,89 @@ class GameScene: SKScene,SKPhysicsContactDelegate {
         let bestScore = userDefaults.integer(forKey: "BEST")
         bestScoreLabeLNode = SKLabelNode()
         bestScoreLabeLNode.fontColor = UIColor.black
-        bestScoreLabeLNode.position = CGPoint(x: 10, y: self.frame.size.height - 90)
+        bestScoreLabeLNode.position = CGPoint(x: 10, y: self.frame.size.height - 120)
         bestScoreLabeLNode.zPosition = 100
         bestScoreLabeLNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
         bestScoreLabeLNode.text = "Best Score:\(bestScore)"
         self.addChild(bestScoreLabeLNode)
+        
+        //アイテムスコア表示を作成
+        itemScore = 0
+        itemScoreLabelNode = SKLabelNode()
+        itemScoreLabelNode.fontColor = UIColor.black
+        itemScoreLabelNode.position = CGPoint(x: 10, y: self.frame.size.height - 90)
+        itemScoreLabelNode.zPosition = 100
+        itemScoreLabelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
+        itemScoreLabelNode.text = "Item Score:\(itemScore)"
+        self.addChild(itemScoreLabelNode)
+        
+        
     }
+    
+    func setupCoin(){
+        //コインの画像を２種類読み込む
+        let coinTextureA = SKTexture(imageNamed: "coin_a")
+        coinTextureA.filteringMode = .linear
+        let coinTextureB = SKTexture(imageNamed: "coin_b")
+        coinTextureB.filteringMode = .linear
+        
+        //２種類のテクスチャーを交互に変更するアニメーションを作成
+        let texturesAnimation = SKAction.animate(with: [coinTextureA, coinTextureB], timePerFrame: 0.2)
+        let turn = SKAction.repeatForever(texturesAnimation)
+        
+        //移動する距離を計算
+        let movingDistance = self.frame.size.width + coinTextureA.size().width
+        
+        //画面外まで移動するアクションを作成
+        let moveCoin = SKAction.moveBy(x: -movingDistance, y: 0, duration: 4)
+        //自身を取り除くアクションを作成
+        let removeCoin = SKAction.removeFromParent()
+        //２つのアニメーションを順に実行するアクションを作成
+        let coinAnimation = SKAction.sequence([moveCoin,removeCoin])
+        
+       
+        
+        //コインを生成するアクションを作成
+        
+        let createCoinAnimation = SKAction.run({
+            
+            let coin = SKSpriteNode(texture: coinTextureA)
+            let random_y_range: CGFloat = 150
+            let random_y = CGFloat.random(in: -random_y_range...random_y_range)
+            
+            coin.position = CGPoint(x: self.frame.size.width + coinTextureA.size().width / 2, y: self.frame.size.height / 2 + random_y)
+            coin.zPosition = -50
+            
+            //物理体を設定
+            coin.physicsBody = SKPhysicsBody(rectangleOf: coinTextureA.size())
+            coin.physicsBody?.categoryBitMask = self.coinCategory
+            coin.physicsBody?.isDynamic = false
+            
+            coin.run(turn)
+            coin.run(coinAnimation)
+            
+            self.coinNode.addChild(coin)
+        })
+        
+  
+        //コイン作成開始までの時間
+        let start = SKAction.wait(forDuration: 1)
+        
+        //次のコイン作成までの時間待ちのアクションを作成
+        let waitAnimation = SKAction.wait(forDuration: 2)
+        
+        //コインを作成　時間待ち　コインを作成を無限に繰り返すアクションを作成
+        let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createCoinAnimation, waitAnimation]))
+        
+        let lastcoinAnimation = SKAction.sequence([start, repeatForeverAnimation])
+        
+        //コインノードにコインの作成を無限に繰り返すアクションを設定
+        
+        coinNode.run(lastcoinAnimation)
+       
+        
+    }
+        
+       
+     
 }
